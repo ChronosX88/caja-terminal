@@ -49,6 +49,7 @@ import os
 import signal
 import re
 import urllib
+import urllib.request
 import gettext
 gettext.install(__appname__)
 from xdg import BaseDirectory
@@ -357,21 +358,21 @@ class CajaTerminalPref(object):
         self.demoTerm = Vte.Terminal()
         self.demoTerm.set_size(20, 3)
         #Display something in the terminal
-        self.demoTerm.feed("       _\|/_   zZ    ❭       ")
-        self.demoTerm.feed("        ❭         _\|/_\n\033[1G")
-        self.demoTerm.feed("       (- -) zZ      ❭  \_°< ")
-        self.demoTerm.feed("Coin !  ❭         (O O)\n\033[1G")
-        self.demoTerm.feed("---oOO--(_)--OOo---  ❭               ❭  ")
-        self.demoTerm.feed("---oOO--(_)--OOo---\n\033[2J\033[1;1f")
-        self.demoTerm.feed("[\033[40m \033[41m \033[42m \033[43m \033[44m ")
-        self.demoTerm.feed("\033[45m \033[46m \033[47m \033[0m] ")
-        self.demoTerm.feed("[\033[30m#\033[31m#\033[32m#\033[33m#\033[34m#")
-        self.demoTerm.feed("\033[35m#\033[36m#\033[37m#\033[0m] ")
-        self.demoTerm.feed("[\033[1;30m#\033[1;31m#\033[1;32m#\033[1;33m#")
-        self.demoTerm.feed("\033[1;34m#\033[1;35m#\033[1;36m#\033[1;37m#")
-        self.demoTerm.feed("\033[0m] [\033[0m#\033[0m\033[1m#\033[0m\033[4m#")
-        self.demoTerm.feed("\033[0m\033[5m#\033[0m\033[7m#\033[0m]\n\033[1G")
-        self.demoTerm.feed("CajaTerminal@Preferences:~# ")
+        terminal_feed(self.demoTerm, "       _\|/_   zZ    ❭       ")
+        terminal_feed(self.demoTerm, "        ❭         _\|/_\n\033[1G")
+        terminal_feed(self.demoTerm, "       (- -) zZ      ❭  \_°< ")
+        terminal_feed(self.demoTerm, "Coin !  ❭         (O O)\n\033[1G")
+        terminal_feed(self.demoTerm, "---oOO--(_)--OOo---  ❭               ❭  ")
+        terminal_feed(self.demoTerm, "---oOO--(_)--OOo---\n\033[2J\033[1;1f")
+        terminal_feed(self.demoTerm, "[\033[40m \033[41m \033[42m \033[43m \033[44m ")
+        terminal_feed(self.demoTerm, "\033[45m \033[46m \033[47m \033[0m] ")
+        terminal_feed(self.demoTerm, "[\033[30m#\033[31m#\033[32m#\033[33m#\033[34m#")
+        terminal_feed(self.demoTerm, "\033[35m#\033[36m#\033[37m#\033[0m] ")
+        terminal_feed(self.demoTerm, "[\033[1;30m#\033[1;31m#\033[1;32m#\033[1;33m#")
+        terminal_feed(self.demoTerm, "\033[1;34m#\033[1;35m#\033[1;36m#\033[1;37m#")
+        terminal_feed(self.demoTerm, "\033[0m] [\033[0m#\033[0m\033[1m#\033[0m\033[4m#")
+        terminal_feed(self.demoTerm, "\033[0m\033[5m#\033[0m\033[7m#\033[0m]\n\033[1G")
+        terminal_feed(self.demoTerm, "CajaTerminal@Preferences:~# ")
         self.demoTerm.show()
         #General
         self.cbShowScrollbar = self.gui.get_object("cbShowScrollbar")
@@ -404,7 +405,7 @@ class CajaTerminalPref(object):
         self.clbtnFg = self.gui.get_object("clbtnFg")
         self.clbtnBg = self.gui.get_object("clbtnBg")
         self.clbtnPalette = []
-        for i in xrange(16):
+        for i in range(16):
             self.clbtnPalette.append(self.gui.get_object("clbtnPalette%i" % i))
             self.clbtnPalette[i].connect(
                     "color-set",
@@ -630,7 +631,7 @@ class CajaTerminalPref(object):
             fg = self.clbtnFg.get_color()
             bg = self.clbtnBg.get_color()
         palette = []
-        for i in xrange(16):
+        for i in range(16):
             if Gtk.check_version(3, 0, 0) is None:
                 palette.append(Gdk.RGBA())
                 palette[-1].parse(colors[i])
@@ -697,7 +698,7 @@ class CajaTerminal(GObject.GObject, Caja.LocationWidgetProvider):
             window.nt_termhidden = CONF['general_starthidden']
         #If it's not a local folder, directory = $HOME
         if uri[:7] == "file://":
-            path = urllib.url2pathname(uri[7:])
+            path = urllib.request.url2pathname(uri[7:])
         else:
             path = os.environ.get("HOME")
         #Disable for desktop folder
@@ -864,7 +865,7 @@ class CajaTerminal(GObject.GObject, Caja.LocationWidgetProvider):
             window.nt_lastpid = terminal.fork_command_full(Vte.PtyFlags.DEFAULT,
                     None, [CONF['general_command']], None,
                     GLib.SpawnFlags.SEARCH_PATH, None, None)[1]
-        terminal.feed("\033[2K\033[1G")
+        terminal_feed(terminal, "\033[2K\033[1G")
         terminal.has_child = True
         terminal.ctrl_pressed = False
         terminal.current_command = ""
@@ -1037,6 +1038,18 @@ def match_path(path, path_list):
             break
     return match
 
+def terminal_feed(terminal, text):
+        """
+        gobject-introspection/python-gi differences force us to try with and
+        without the text length. One of them will work.
+        """
+        try:
+            terminal.feed(text.encode())
+        except TypeError:
+            try:
+                terminal.feed(text, len(text))
+            except TypeError:
+                terminal.feed(text.encode(), len(text))
 
 CONF = Conf(CONF_FILE)
 
