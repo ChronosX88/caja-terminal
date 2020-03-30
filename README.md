@@ -1,26 +1,20 @@
 caja-terminal
 ======================
 
-embedded terminal in caja
-
-Caja terminal is a fork of nautilus terminal.
-
-Orginal:
-
-WEB SITE : http://software.flogisoft.com/nautilus-terminal/
-
-VERSION : 0.10
+>Embedded terminal in caja
 
 caja-terminal is an embedded terminal in caja, the MATE's file browser.
 It is always open in the current folder, and follows the navigation.
 
+*Caja terminal is a fork of nautilus terminal.*
+
 Dependencies:
 
-    * PyGObject 3.x <http://pygtk.org/>
+    * PyGObject 3.x <https://pygobject.readthedocs.io/en/latest/>
 
-	* Caja Python <http://pub.mate-desktop.org/releases/1.8/python-caja>
+	* Caja Python <https://github.com/mate-desktop/python-caja>
 
-	* VTE with GObject Introspection <http://ftp.gnome.org/pub/GNOME/sources/vte/>
+	* VTE with GObject Introspection <https://wiki.gnome.org/Apps/Terminal/VTE>
 
 	* Python XDG <http://freedesktop.org/wiki/Software/pyxdg>
 
@@ -32,9 +26,9 @@ Building dependencies:
 
 Install:
 
-    To install Caja Terminal, run './install.sh --install' as root.
+    To install Caja Terminal, run `./install.sh --install` as root.
 
 Uninstall:
 
     To uninstall Caja Terminal, run
-    '/usr/share/caja-terminal/install.sh --remove' as root.
+    `/usr/share/caja-terminal/install.sh --remove` as root.
